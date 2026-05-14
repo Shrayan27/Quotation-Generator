@@ -1,0 +1,91 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Customer {
+  id        String      @id @default(uuid())
+  name      String
+  email     String?
+  phone     String?
+  gstin     String?
+  address   String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  quotations Quotation[]
+}
+
+model Quotation {
+  id            String   @id @default(uuid())
+  quoteNumber   String   @unique
+  customerId    String?
+  customer      Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  // Dates & Meta
+  quoteDate     String
+  validTill     String
+  quoteTitle    String?
+  projectName   String?
+  custRef       String?
+  transport     String?
+
+  // Billing Details (Snapshot for history preservation)
+  billName      String
+  billContact   String?
+  billAddr      String
+  billPhone     String?
+  billEmail     String?
+  billState     String?
+  billStateCode String?
+
+  // Shipping Details
+  sameAsBill    Boolean  @default(true)
+  shipName      String?
+  shipContact   String?
+  shipAddr      String?
+  shipPhone     String?
+  shipEmail     String?
+  shipState     String?
+  shipStateCode String?
+
+  // Charges & Taxes Configuration
+  freightType   String   @default("extra") // extra | included | custom
+  freightAmt    Float    @default(0.0)
+  instType      String   @default("extra") // extra | included
+  taxType       String   @default("igst")  // igst | cgst
+
+  // Terms
+  payTerms      String?
+  delivTime     String?
+  warranty      String?
+  warrantyStart String?
+
+  // Financial Totals
+  subtotal      Float
+  tax           Float
+  total         Float
+
+  status        String   @default("draft") // draft | sent | confirmed | lost
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  items         QuotationItem[]
+}
+
+model QuotationItem {
+  id          String    @id @default(uuid())
+  quotationId String
+  quotation   Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  
+  description String
+  hsn         String?
+  qty         Float     @default(1.0)
+  rate        Float     @default(0.0)
+  tax         Float     @default(18.0)
+  photo       String?   // Base64 or uploaded URL string
+}

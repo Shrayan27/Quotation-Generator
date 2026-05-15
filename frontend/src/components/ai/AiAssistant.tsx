@@ -69,6 +69,15 @@ export const AiAssistant: React.FC = () => {
       total += amt + amt * (it.tax / 100);
     });
 
+    // Freight charge label for email context
+    const freightAmt = parseFloat(String(state.freightAmt || 0));
+    const freightCharge =
+      state.freightType === 'extra'
+        ? 'Extra (charged at actuals)'
+        : state.freightType === 'custom'
+        ? `₹${freightAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })} (included in total)`
+        : 'Included in price';
+
     setLoadingEmail(true);
     try {
       const draft = await api.draftEmail({
@@ -80,6 +89,7 @@ export const AiAssistant: React.FC = () => {
         payTerms: state.payTerms,
         delivTime: state.delivTime,
         warranty: state.warranty,
+        freightCharge: freightCharge,
       });
 
       setEmailSubjectState(draft.subject);

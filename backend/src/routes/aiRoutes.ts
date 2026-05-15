@@ -29,6 +29,7 @@ aiRouter.post('/draft-email', async (req: Request, res: Response) => {
       payTerms,
       delivTime,
       warranty,
+      freightCharge,
     } = req.body;
 
     if (!quoteNo || !custName || !productSummary) {
@@ -44,6 +45,7 @@ aiRouter.post('/draft-email', async (req: Request, res: Response) => {
       payTerms,
       delivTime,
       warranty,
+      freightCharge,
     });
 
     return res.json(draft);

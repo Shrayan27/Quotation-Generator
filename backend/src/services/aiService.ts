@@ -82,6 +82,7 @@ Rules:
     payTerms: string;
     delivTime: string;
     warranty: string;
+    freightCharge?: string;
   }): Promise<AiEmailResponse> {
     const systemPrompt = `You are a professional sales representative for Kuchhal Brothers (KB Sensormart), an industrial sensor and instrument company based in Roorkee, Uttarakhand, India. You write warm, professional, concise B2B emails in English. Your tone is polite, confident, and helpful — like a trusted supplier, not a salesperson.`;
 
@@ -93,6 +94,7 @@ Quotation details:
 - Products: 
 ${context.productSummary}
 - Total Amount: ${context.totalAmount}
+- Freight / Transport Charges: ${context.freightCharge || 'Extra at actuals'}
 - Valid Till: ${context.validTill || '30 days from date'}
 - Payment Terms: ${context.payTerms}
 - Delivery Time: ${context.delivTime}
@@ -137,7 +139,7 @@ Rules for the email body:
       console.error('Anthropic API Email Draft Error:', error);
       return {
         subject: `Quotation ${context.quoteNo} — KB Sensormart`,
-        body: `Dear ${context.custName},\n\nThank you for your valuable inquiry. Please find our commercial offer referenced as ${context.quoteNo} for the industrial sensors/instruments.\n\nTotal Investment: ${context.totalAmount}\nDelivery Schedule: ${context.delivTime}\nPayment Terms: ${context.payTerms}\nWarranty: ${context.warranty}\n\nWe look forward to your confirmation and remain available for any technical clarifications.\n\nWarm regards,\nKB Sensormart — Kuchhal Brothers\n+91 7017880914\nkuchhalbrothers@gmail.com`
+        body: `Dear ${context.custName},\n\nThank you for your valuable inquiry. Please find our commercial offer referenced as ${context.quoteNo} for the industrial sensors/instruments.\n\nTotal Investment: ${context.totalAmount}\nFreight / Transport Charges: ${context.freightCharge || 'Extra at actuals'}\nDelivery Schedule: ${context.delivTime}\nPayment Terms: ${context.payTerms}\nWarranty: ${context.warranty}\n\nWe look forward to your confirmation and remain available for any technical clarifications.\n\nWarm regards,\nKB Sensormart — Kuchhal Brothers\n+91 7017880914\nkuchhalbrothers@gmail.com`
       };
     }
   }

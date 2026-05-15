@@ -49,7 +49,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, onOpenTracker, onOpenH
     };
     try {
       localStorage.setItem('kb_react_draft', JSON.stringify(draft));
-      setToast('Quotation draft saved successfully to browser storage!');
+      setToast('Quotation draft saved successfully to browser storage!', 'success');
     } catch {
       setToast('Failed to save draft. Storage quota limit reached.', 'warn');
     }
@@ -59,12 +59,12 @@ export const Layout: React.FC<LayoutProps> = ({ children, onOpenTracker, onOpenH
     try {
       const raw = localStorage.getItem('kb_react_draft');
       if (!raw) {
-        setToast('No saved draft found in this browser.', 'warn');
+        setToast('No saved draft found in this browser.', 'info');
         return;
       }
       const draft = JSON.parse(raw);
       loadSnapshot(draft);
-      setToast(`Draft loaded (Saved at ${new Date(draft.savedAt).toLocaleTimeString()})`);
+      setToast(`Draft loaded (Saved at ${new Date(draft.savedAt).toLocaleTimeString()})`, 'success');
     } catch {
       setToast('Failed to load draft file.', 'warn');
     }
@@ -92,6 +92,10 @@ export const Layout: React.FC<LayoutProps> = ({ children, onOpenTracker, onOpenH
             className={`px-5 py-3 rounded-xl shadow-glass border font-bold text-sm backdrop-blur-md flex items-center gap-2 ${
               toastMessage.type === 'warn'
                 ? 'bg-amber-500/90 border-amber-400 text-white'
+                : toastMessage.type === 'success'
+                ? 'bg-yellow-400/95 border-yellow-300 text-yellow-900'
+                : toastMessage.type === 'info'
+                ? 'bg-sky-500/90 border-sky-400 text-white'
                 : 'bg-brand-900/95 border-brand-700 text-white'
             }`}
           >

@@ -79,6 +79,19 @@ export const api = {
   },
 
   /**
+   * Fetch the next sequential quote number for the current Indian Financial Year.
+   * Returns a preview string like "QUOKBN2627-004".
+   */
+  async fetchNextQuoteNumber(): Promise<string> {
+    const res = await fetch(`${BASE_URL}/quotations/next-number`);
+    if (!res.ok) {
+      throw new Error('Failed to fetch next quote number from server.');
+    }
+    const data = await res.json();
+    return data.quoteNumber as string;
+  },
+
+  /**
    * Delete specific historical quotation record.
    */
   async deleteQuotation(id: string): Promise<void> {

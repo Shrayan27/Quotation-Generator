@@ -4,6 +4,26 @@ import { PdfService } from '../services/pdfService';
 
 export const quotationRouter = Router();
 
+
+function getFinancialYearCode(): string {
+  const today = new Date();
+  const month = today.getMonth(); 
+  const year  = today.getFullYear();
+  const fyStart = month < 3 ? year - 1 : year;
+  const fyEnd   = fyStart + 1;
+  return `${String(fyStart).slice(2)}${String(fyEnd).slice(2)}`;
+}
+
+async function generateNextQuoteNumber(): Promise<string> {
+  const fyCode = getFinancialYearCode();
+  const prefix = `QUOKBN${fyCode}-`;
+  const count = await prisma.quotation.count({
+    where: { quoteNumber: { startsWith: prefix } },
+  });
+  const seq = String(count + 1).padStart(3, '0');
+  return `${prefix}${seq}`;
+}
+
 /**
  * Generate PDF buffer instantly from volatile payload state (Preview mode)
  */
@@ -19,6 +39,19 @@ quotationRouter.post('/preview-pdf', async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('POST /api/quotations/preview-pdf error:', error);
     return res.status(500).json({ error: error.message || 'Error generating dynamic PDF output' });
+  }
+});
+
+/**
+ * Return the next available quote number for the current Financial Year (preview only).
+ */
+quotationRouter.get('/next-number', async (_req: Request, res: Response) => {
+  try {
+    const nextNumber = await generateNextQuoteNumber();
+    return res.json({ quoteNumber: nextNumber });
+  } catch (error: any) {
+    console.error('GET /api/quotations/next-number error:', error);
+    return res.status(500).json({ error: 'Failed to generate next quote number.' });
   }
 });
 
@@ -74,7 +107,7 @@ quotationRouter.post('/', async (req: Request, res: Response) => {
     // 3. Persist quotation snapshot
     const savedQuotation = await prisma.quotation.create({
       data: {
-        quoteNumber: data.quoteNumber || `QUOKBN-${Date.now().toString().slice(-4)}`,
+        quoteNumber: await generateNextQuoteNumber(),
         customerId: customerId || null,
         
         quoteDate: data.quoteDate || new Date().toISOString().split('T')[0],

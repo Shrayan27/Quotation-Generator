@@ -1,5 +1,5 @@
 import { Archive, Building2, Calculator, Calendar, Eye, FileText, Plus, Receipt, Truck } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { api } from '../api';
 import { AiAssistant } from '../components/ai/AiAssistant';
 import { useQuotationStore } from '../store/quotationStore';
@@ -11,6 +11,12 @@ export const QuotationEditor: React.FC = () => {
   const [generatingPdf, setGeneratingPdf] = useState(false);
 
   const state = useQuotationStore();
+
+  // Fetch the real next sequential quote number from backend on first load
+  useEffect(() => {
+    state.fetchAndSetNextQuoteNumber();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Handle generic native input mapping to Zustand reactive setters
   const handleTextChange = (field: any, val: string) => {
@@ -178,7 +184,9 @@ export const QuotationEditor: React.FC = () => {
 
       localStorage.setItem('kb_notifications', JSON.stringify(notifsArr));
 
-      state.setToast('Archived safely into PostgreSQL backend & registered active tracker reminder!');
+      state.setToast('Archived safely into PostgreSQL backend & registered active tracker reminder!', 'success');
+      // Refresh the quote number to the next sequential value for the next new quotation
+      state.fetchAndSetNextQuoteNumber();
     } catch (error: any) {
       // Fallback gracefully to simple browser history
       try {

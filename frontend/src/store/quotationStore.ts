@@ -1,9 +1,10 @@
 import { create } from 'zustand';
+import { api } from '../api';
 import { QuotationFormState, QuoteItem } from '../types';
 
 interface QuotationStoreState extends QuotationFormState {
   items: QuoteItem[];
-  toastMessage: { text: string; type: 'ok' | 'warn' } | null;
+  toastMessage: { text: string; type: 'ok' | 'warn' | 'success' | 'info' } | null;
   notificationDays: number;
 
   // Actions
@@ -11,21 +12,32 @@ interface QuotationStoreState extends QuotationFormState {
   removeItem: (id: string) => void;
   updateItem: (id: string, field: keyof QuoteItem, value: any) => void;
   updateForm: (updates: Partial<QuotationFormState>) => void;
-  setToast: (text: string, type?: 'ok' | 'warn') => void;
+  setToast: (text: string, type?: 'ok' | 'warn' | 'success' | 'info') => void;
   clearToast: () => void;
   setNotificationDays: (days: number) => void;
   resetForm: () => void;
+  fetchAndSetNextQuoteNumber: () => Promise<void>;
   loadSnapshot: (snapshot: Partial<QuotationFormState> & { items?: QuoteItem[] }) => void;
+}
+
+/**
+ * Returns the Indian Financial Year code, e.g. "2627" for FY 2026-27 (Apr-Mar).
+ */
+function getLocalFyCode(): string {
+  const today = new Date();
+  const month = today.getMonth(); // 0-indexed, March = 2
+  const year  = today.getFullYear();
+  const fyStart = month < 3 ? year - 1 : year;
+  const fyEnd   = fyStart + 1;
+  return `${String(fyStart).slice(2)}${String(fyEnd).slice(2)}`;
 }
 
 const getInitialDefaults = (): QuotationFormState & { items: QuoteItem[] } => {
   const today = new Date();
   const plus30 = new Date(today.getTime() + 30 * 86400000);
-  const yr = today.getFullYear().toString().slice(2);
-  const rn = String(Math.floor(Math.random() * 9000) + 1000);
 
   return {
-    quoteNumber: `QUOKBN${rn}-${yr}`,
+    quoteNumber: `QUOKBN${getLocalFyCode()}-???`,
     quoteDate: today.toISOString().split('T')[0],
     validTill: plus30.toISOString().split('T')[0],
     quoteTitle: '',
@@ -124,10 +136,22 @@ export const useQuotationStore = create<QuotationStoreState>((set) => ({
 
   setNotificationDays: (days) => set({ notificationDays: days }),
 
-  resetForm: () =>
-    set(() => ({
-      ...getInitialDefaults(),
-    })),
+  resetForm: () => {
+    set(() => ({ ...getInitialDefaults() }));
+    // Fetch the real next number from backend after reset
+    api.fetchNextQuoteNumber()
+      .then((num) => set({ quoteNumber: num }))
+      .catch(() => { /* keep the ??? placeholder if offline */ });
+  },
+
+  fetchAndSetNextQuoteNumber: async () => {
+    try {
+      const num = await api.fetchNextQuoteNumber();
+      set({ quoteNumber: num });
+    } catch {
+      // silently keep existing placeholder
+    }
+  },
 
   loadSnapshot: (snapshot) =>
     set((state) => ({

@@ -175,7 +175,7 @@ export function generateLivePreviewHtml(q: any): string {
       overflow: hidden;
     }
     .header-bar {
-      background: #f3f115ff;
+      background: #1a3a1a;
       color: #fff;
       padding: 12px 16px;
       display: flex;
@@ -283,7 +283,7 @@ export function generateLivePreviewHtml(q: any): string {
       <div style="padding:8px 10px;border-right:1px solid #ddd;display:flex;flex-direction:column;justify-content:space-between;">
         <div>
           <div style="font-weight:700;color:#1a3a1a;font-size:10px;">For Kuchhal Brothers</div>
-          ${q.authSignature && q.authSignature.length > 20 ? `<img src="${q.authSignature}" style="max-height:45px;max-width:140px;object-fit:contain;display:block;margin:4px 0;" alt="Authorized Signature Stamp" />` : '<div style="height:35px;"></div>'}
+          ${q.authSignature && q.authSignature.length > 20 ? `<img src="${q.authSignature}" style="max-height:100px;max-width:220px;object-fit:contain;display:block;margin:4px 0;" alt="Authorized Signature Stamp" />` : '<div style="height:80px;"></div>'}
           <div style="color:#aaa;font-size:9px;font-style:italic;">(Authorized Signatory)</div>
         </div>
       </div>

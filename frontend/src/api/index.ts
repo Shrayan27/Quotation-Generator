@@ -33,6 +33,7 @@ export const api = {
     payTerms: string;
     delivTime: string;
     warranty: string;
+    freightCharge?: string;
   }): Promise<AiEmailSuggestion> {
     const res = await fetch(`${BASE_URL}/ai/draft-email`, {
       method: 'POST',

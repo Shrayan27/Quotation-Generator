@@ -147,6 +147,7 @@ quotationRouter.post('/', async (req: Request, res: Response) => {
         subtotal: calculatedSubtotal,
         tax: calculatedTax,
         total: calculatedSubtotal + calculatedTax,
+        isDocComposite: data.isDocComposite === true,
         status: data.status || 'saved',
 
         items: {

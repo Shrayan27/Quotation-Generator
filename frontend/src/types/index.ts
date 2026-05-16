@@ -49,6 +49,8 @@ export interface QuotationFormState {
   delivTime: string;
   warranty: string;
   warrantyStart: string;
+
+  isDocComposite?: boolean;
 }
 
 export interface QuotationHistoryEntry extends QuotationFormState {

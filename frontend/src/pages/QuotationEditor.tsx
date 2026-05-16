@@ -102,6 +102,7 @@ export const QuotationEditor: React.FC = () => {
         authSignature: state.authSignature,
 
         items: state.items,
+        isDocComposite: state.isDocComposite,
       };
 
       await api.generatePreviewPdf(payload);
@@ -160,6 +161,7 @@ export const QuotationEditor: React.FC = () => {
         authSignature: state.authSignature,
 
         items: state.items,
+        isDocComposite: state.isDocComposite,
         status: 'saved',
       };
 
@@ -647,9 +649,22 @@ export const QuotationEditor: React.FC = () => {
                   </h2>
                 </div>
 
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-brand-50 text-brand-900 border border-brand-100">
-                  Total Lines: {state.items.length}
-                </span>
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer group/toggle">
+                    <input
+                      type="checkbox"
+                      checked={state.isDocComposite}
+                      onChange={(e) => state.updateForm({ isDocComposite: e.target.checked })}
+                      className="w-4 h-4 rounded text-brand-900 focus:ring-brand-500 accent-brand-900 cursor-pointer"
+                    />
+                    <span className="text-[10px] font-black uppercase tracking-wider text-brand-900 group-hover/toggle:text-brand-700 transition-colors">
+                      Composite Format
+                    </span>
+                  </label>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-brand-50 text-brand-900 border border-brand-100">
+                    Total Lines: {state.items.length}
+                  </span>
+                </div>
               </div>
 
               <div className="space-y-3">

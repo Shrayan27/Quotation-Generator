@@ -73,6 +73,7 @@ const getInitialDefaults = (): QuotationFormState & { items: QuoteItem[] } => {
     delivTime: '2-3 weeks',
     warranty: '1 year against manufacturing defects',
     warrantyStart: 'Date of delivery',
+    isDocComposite: false,
 
     items: [
       {

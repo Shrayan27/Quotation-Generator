@@ -321,7 +321,7 @@ export function generateQuotationHtml(q: any): string {
       <div style="padding:10px 14px;border-right:1px solid #ccc;display:flex;flex-direction:column;justify-content:space-between;">
         <div>
           <div style="font-weight:700;color:#1a3a1a;margin-bottom:8px;">For Kuchhal Brothers</div>
-          ${q.authSignature && q.authSignature.length > 20 ? `<img src="${q.authSignature}" style="max-height:50px;max-width:150px;object-fit:contain;display:block;margin:6px 0;" alt="Authorized Signature" />` : `<div style="height:50px;display:flex;align-items:center;color:#aaa;font-size:11px;font-style:italic;">(Authorized Digital Output)</div>`}
+          ${q.authSignature && q.authSignature.length > 20 ? `<img src="${q.authSignature}" style="max-height:80px;max-width:200px;object-fit:contain;display:block;margin:6px 0;" alt="Authorized Signature" />` : `<div style="height:80px;display:flex;align-items:center;color:#aaa;font-size:11px;font-style:italic;">(Authorized Digital Output)</div>`}
         </div>
         <div style="font-weight:700;font-size:11px;color:#555;border-top:1px dashed #eee;padding-top:4px;">
           Authorized Signatory

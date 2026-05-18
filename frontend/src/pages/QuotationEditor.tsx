@@ -410,7 +410,7 @@ export const QuotationEditor: React.FC = () => {
 
                 {/* Authorized Signature Upload */}
                 <div className="p-3 bg-gray-50/60 rounded-xl border border-gray-200 flex items-center gap-3 relative group">
-                  <div className="w-12 h-12 rounded-lg bg-white border border-gray-200 flex items-center justify-center shrink-0 overflow-hidden relative">
+                  <div className="w-24 h-16 rounded-lg bg-white border border-gray-200 flex items-center justify-center shrink-0 overflow-hidden relative">
                     {state.authSignature ? (
                       <img src={state.authSignature} alt="Authorized Signature" className="w-full h-full object-contain p-0.5" />
                     ) : (

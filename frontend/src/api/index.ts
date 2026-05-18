@@ -122,4 +122,35 @@ export const api = {
     // Open new tab displaying native PDF stream matching premium presentation
     window.open(blobUrl, '_blank');
   },
+
+  /**
+   * Fetch active follow-up sequences from the backend.
+   */
+  async getActiveFollowUps(): Promise<any[]> {
+    const res = await fetch(`${BASE_URL}/quotations/follow-ups/active`);
+    if (!res.ok) {
+      throw new Error('Error retrieving follow up sequences.');
+    }
+    return res.json();
+  },
+
+  /**
+   * Manually mark a follow up sequence as replied.
+   */
+  async markFollowUpReplied(id: string): Promise<void> {
+    const res = await fetch(`${BASE_URL}/quotations/follow-ups/${id}/reply`, { method: 'POST' });
+    if (!res.ok) {
+      throw new Error('Error marking sequence as replied.');
+    }
+  },
+
+  /**
+   * Delete a follow up sequence.
+   */
+  async deleteFollowUp(id: string): Promise<void> {
+    const res = await fetch(`${BASE_URL}/quotations/follow-ups/${id}`, { method: 'DELETE' });
+    if (!res.ok) {
+      throw new Error('Error deleting sequence.');
+    }
+  },
 };

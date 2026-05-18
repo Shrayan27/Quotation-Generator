@@ -8,11 +8,9 @@ export const AiAssistant: React.FC = () => {
   const [loadingSpecs, setLoadingSpecs] = useState(false);
   const [loadingEmail, setLoadingEmail] = useState(false);
   
-  const [emailSubjectState, setEmailSubjectState] = useState('');
-  const [emailBodyState, setEmailBodyState] = useState('');
   const [showEmailDraft, setShowEmailDraft] = useState(false);
 
-  const { items, addItem, updateItem, setToast } = useQuotationStore();
+  const { items, addItem, updateItem, setToast, customEmailSubject, customEmailBody, updateForm } = useQuotationStore();
 
   const handleSuggestSpecs = async () => {
     if (!productQuery.trim()) {
@@ -92,8 +90,10 @@ export const AiAssistant: React.FC = () => {
         freightCharge: freightCharge,
       });
 
-      setEmailSubjectState(draft.subject);
-      setEmailBodyState(draft.body);
+      state.updateForm({
+        customEmailSubject: draft.subject,
+        customEmailBody: draft.body,
+      });
       setShowEmailDraft(true);
       setToast('Professional email draft constructed successfully!');
     } catch (error: any) {
@@ -106,13 +106,14 @@ export const AiAssistant: React.FC = () => {
   const openMailClient = () => {
     const state = useQuotationStore.getState();
     const to = state.billEmail || '';
-    const subject = encodeURIComponent(emailSubjectState);
-    const body = encodeURIComponent(emailBodyState);
+    const subject = encodeURIComponent(state.customEmailSubject || '');
+    const body = encodeURIComponent(state.customEmailBody || '');
     window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
   };
 
   const copyBodyToClipboard = () => {
-    navigator.clipboard.writeText(emailBodyState);
+    const state = useQuotationStore.getState();
+    navigator.clipboard.writeText(state.customEmailBody || '');
     setToast('Email body copied to your clipboard!');
   };
 
@@ -210,8 +211,8 @@ export const AiAssistant: React.FC = () => {
               </label>
               <input
                 type="text"
-                value={emailSubjectState}
-                onChange={(e) => setEmailSubjectState(e.target.value)}
+                value={customEmailSubject || ''}
+                onChange={(e) => updateForm({ customEmailSubject: e.target.value })}
                 className="w-full px-3 py-2 rounded-lg bg-gray-50 border border-gray-200 text-xs font-semibold text-gray-800 focus:outline-none focus:bg-white"
               />
             </div>
@@ -222,8 +223,8 @@ export const AiAssistant: React.FC = () => {
               </label>
               <textarea
                 rows={6}
-                value={emailBodyState}
-                onChange={(e) => setEmailBodyState(e.target.value)}
+                value={customEmailBody || ''}
+                onChange={(e) => updateForm({ customEmailBody: e.target.value })}
                 className="w-full p-3 rounded-lg bg-gray-50 border border-gray-200 text-xs text-gray-800 focus:outline-none focus:bg-white leading-relaxed font-sans resize-y"
               />
             </div>

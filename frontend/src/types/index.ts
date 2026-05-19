@@ -51,6 +51,8 @@ export interface QuotationFormState {
   warrantyStart: string;
 
   isDocComposite?: boolean;
+  customEmailSubject?: string;
+  customEmailBody?: string;
 }
 
 export interface QuotationHistoryEntry extends QuotationFormState {

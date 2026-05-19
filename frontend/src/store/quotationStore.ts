@@ -74,6 +74,8 @@ const getInitialDefaults = (): QuotationFormState & { items: QuoteItem[] } => {
     warranty: '1 year against manufacturing defects',
     warrantyStart: 'Date of delivery',
     isDocComposite: false,
+    customEmailSubject: '',
+    customEmailBody: '',
 
     items: [
       {

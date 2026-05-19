@@ -77,6 +77,7 @@ model Quotation {
   updatedAt     DateTime @updatedAt
 
   items         QuotationItem[]
+  followUpSequence FollowUpSequence?
 }
 
 model QuotationItem {
@@ -90,4 +91,16 @@ model QuotationItem {
   rate        Float     @default(0.0)
   tax         Float     @default(18.0)
   photo       String?   // Base64 or uploaded URL string
+}
+
+model FollowUpSequence {
+  id               String   @id @default(uuid())
+  quotationId      String   @unique
+  quotation        Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  customerEmail    String
+  status           String   @default("ACTIVE") // ACTIVE | STOPPED | COMPLETED
+  followUpCount    Int      @default(0)
+  nextFollowUpDate DateTime
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }

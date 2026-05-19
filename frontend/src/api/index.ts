@@ -153,4 +153,19 @@ export const api = {
       throw new Error('Error deleting sequence.');
     }
   },
+
+  /**
+   * Manually trigger follow-up outreach check, optionally forcing all active sequences to run now.
+   */
+  async triggerFollowUpCheck(forceDue: boolean = false): Promise<void> {
+    const res = await fetch(`${BASE_URL}/quotations/follow-ups/trigger-check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ forceDue }),
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.error || 'Error triggering follow up check.');
+    }
+  },
 };

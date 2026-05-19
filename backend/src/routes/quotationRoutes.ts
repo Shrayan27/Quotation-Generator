@@ -1,6 +1,9 @@
 import { Request, Response, Router } from 'express';
 import { prisma } from '../database/prisma';
 import { PdfService } from '../services/pdfService';
+import { sendEmail } from '../services/emailService';
+import { AiService } from '../services/aiService';
+import { runFollowUpSequenceCheck } from '../jobs/followUpCron';
 
 export const quotationRouter = Router();
 
@@ -160,6 +163,71 @@ quotationRouter.post('/', async (req: Request, res: Response) => {
       },
     });
 
+    // Send the initial email with attached Quotation if billing email is provided
+    if (savedQuotation.billEmail) {
+      try {
+        const pdfBuffer = await PdfService.generateQuotationPdf(data);
+        
+        // Construct a professional B2B email draft using our mocked service (or use the custom one edited in frontend)
+        const productSummary = savedQuotation.items.map((it: any) => `- ${it.qty}x ${it.description.split('\n')[0]}`).join('\n');
+        const freightCharge = savedQuotation.freightType === 'custom' 
+          ? `₹${savedQuotation.freightAmt.toLocaleString('en-IN')}` 
+          : savedQuotation.freightType === 'included' 
+            ? 'Included' 
+            : 'Extra at actuals';
+
+        let emailSubject = data.customEmailSubject;
+        let emailBody = data.customEmailBody;
+
+        if (!emailSubject || !emailBody) {
+          const draft = await AiService.draftEmail({
+            quoteNo: savedQuotation.quoteNumber,
+            custName: savedQuotation.billName,
+            productSummary,
+            totalAmount: `₹${savedQuotation.total.toLocaleString('en-IN')}`,
+            validTill: savedQuotation.validTill || undefined,
+            payTerms: savedQuotation.payTerms || '100% Advance',
+            delivTime: savedQuotation.delivTime || 'Immediate',
+            warranty: savedQuotation.warranty || '12 Months',
+            freightCharge
+          });
+          emailSubject = draft.subject;
+          emailBody = draft.body;
+        }
+
+        // Convert the plain-text draft newlines into HTML breaks
+        const htmlBody = emailBody.replace(/\n/g, '<br>');
+
+        await sendEmail(
+          savedQuotation.billEmail,
+          emailSubject,
+          htmlBody,
+          [
+            {
+              filename: `Quotation_${savedQuotation.quoteNumber}.pdf`,
+              content: pdfBuffer,
+              contentType: 'application/pdf'
+            }
+          ]
+        );
+
+        // Register the automated Follow-Up Sequence
+        const nextDate = new Date();
+        nextDate.setHours(nextDate.getHours() + 1); // First follow-up in 1 hour (Change "+ 1" to "+ 24" for 1 day)
+
+        await prisma.followUpSequence.create({
+          data: {
+            quotationId: savedQuotation.id,
+            customerEmail: savedQuotation.billEmail,
+            nextFollowUpDate: nextDate,
+          }
+        });
+      } catch (emailErr) {
+        console.error('Error during initial email dispatch or sequence registration:', emailErr);
+        // We don't fail the entire quotation save if email fails, just log it.
+      }
+    }
+
     return res.status(201).json(savedQuotation);
   } catch (error: any) {
     console.error('POST /api/quotations persistence error:', error);
@@ -195,5 +263,84 @@ quotationRouter.delete('/:id', async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('DELETE /api/quotations error:', error);
     return res.status(500).json({ error: 'Failed to delete target quotation record.' });
+  }
+});
+
+/**
+ * Retrieve active follow-up sequences for the dashboard
+ */
+quotationRouter.get('/follow-ups/active', async (req: Request, res: Response) => {
+  try {
+    const list = await prisma.followUpSequence.findMany({
+      orderBy: { nextFollowUpDate: 'asc' },
+      include: { quotation: true },
+    });
+    return res.json(list);
+  } catch (error: any) {
+    console.error('GET /api/quotations/follow-ups/active error:', error);
+    return res.status(500).json({ error: 'Failed to retrieve follow up sequences.' });
+  }
+});
+
+/**
+ * Force trigger a check of all active follow-up outreach sequences.
+ * For easier testing, it optionally updates nextFollowUpDate to 'now' so
+ * that sequences are processed instantly without waiting for their timer.
+ */
+quotationRouter.post('/follow-ups/trigger-check', async (req: Request, res: Response) => {
+  try {
+    const { forceDue } = req.body;
+    console.log(`[API] Triggering follow-up outreach check... (forceDue: ${!!forceDue})`);
+    
+    if (forceDue) {
+      // Mark all ACTIVE sequences as due right now
+      const result = await prisma.followUpSequence.updateMany({
+        where: { status: 'ACTIVE' },
+        data: { nextFollowUpDate: new Date() }
+      });
+      console.log(`[API] Set nextFollowUpDate to now for ${result.count} active sequences.`);
+    }
+    
+    // Execute the sequence checker logic
+    await runFollowUpSequenceCheck();
+    
+    return res.json({ 
+      success: true, 
+      message: "Follow-up outreach check triggered successfully. Check your backend console logs for exact transmission details." 
+    });
+  } catch (error: any) {
+    console.error('POST /api/quotations/follow-ups/trigger-check error:', error);
+    return res.status(500).json({ error: error.message || 'Failed to trigger follow-up outreach.' });
+  }
+});
+
+/**
+ * Mark a follow-up sequence as replied manually
+ */
+quotationRouter.post('/follow-ups/:id/reply', async (req: Request, res: Response) => {
+  try {
+    const updated = await prisma.followUpSequence.update({
+      where: { id: req.params.id as string },
+      data: { status: 'STOPPED' }
+    });
+    return res.json(updated);
+  } catch (error: any) {
+    console.error('POST /api/quotations/follow-ups/:id/reply error:', error);
+    return res.status(500).json({ error: 'Failed to update follow up sequence.' });
+  }
+});
+
+/**
+ * Delete a follow-up sequence
+ */
+quotationRouter.delete('/follow-ups/:id', async (req: Request, res: Response) => {
+  try {
+    await prisma.followUpSequence.delete({
+      where: { id: req.params.id as string },
+    });
+    return res.json({ success: true });
+  } catch (error: any) {
+    console.error('DELETE /api/quotations/follow-ups/:id error:', error);
+    return res.status(500).json({ error: 'Failed to delete follow up sequence.' });
   }
 });

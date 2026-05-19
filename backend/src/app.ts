@@ -1,6 +1,7 @@
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express, { Request, Response } from 'express';
+import { startCronJobs } from './jobs/followUpCron';
 import { aiRouter } from './routes/aiRoutes';
 import { quotationRouter } from './routes/quotationRoutes';
 
@@ -28,6 +29,9 @@ app.get('/health', (req: Request, res: Response) => {
 const server = app.listen(PORT, () => {
   console.log(`[Backend] Secure server running on http://localhost:${PORT}`);
   console.log(`[Backend] Endpoints configured: /api/ai/suggest-specs, /api/ai/draft-email, /api/quotations`);
+  
+  // Initialize automated outreach scheduler
+  startCronJobs();
 });
 
 server.on('error', (err: NodeJS.ErrnoException) => {

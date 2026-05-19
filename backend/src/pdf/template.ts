@@ -87,7 +87,7 @@ export function generateQuotationHtml(q: any): string {
 			// Render item photo if present (Base64 string or absolute URL string)
 			const photoImg =
 				item.photo && item.photo.length > 20
-					? `<img src="${item.photo}" style="width:50px;height:50px;object-fit:contain;display:block;margin:2px auto;border-radius:4px;" />`
+					? `<img src="${item.photo}" style="width:90px;height:90px;object-fit:contain;display:block;margin:2px auto;border-radius:4px;" />`
 					: "";
 
 			const showPrice = !q.isDocComposite;
@@ -292,7 +292,13 @@ export function generateQuotationHtml(q: any): string {
         ${q.shipContact ? `<div style="color:#444;margin-top:2px;">Attn: ${q.shipContact}</div>` : ""}
         <div style="line-height:1.6;margin-top:4px;color:#333;">${(q.shipAddr || q.billAddr || "").replace(/\n/g, "<br>")}</div>
         ${q.shipPhone ? `<div style="margin-top:4px;color:#444;">Ph: ${q.shipPhone}</div>` : ""}
-        ${q.shipState || q.shipStateCode ? `<div style="margin-top:6px;font-weight:700;color:#1a3a1a;background:#f9f9f9;padding:2px 4px;display:inline-block;border-radius:2px;">STATE: ${q.shipState || "—"} &nbsp;|&nbsp; Code: ${q.shipStateCode || "—"}</div>` : ""}
+        ${(() => {
+					const st = q.shipState || q.billState;
+					const sc = q.shipStateCode || q.billStateCode;
+					return st || sc
+						? `<div style="margin-top:6px;font-weight:700;color:#1a3a1a;background:#f9f9f9;padding:2px 4px;display:inline-block;border-radius:2px;">STATE: ${st || "—"} &nbsp;|&nbsp; Code: ${sc || "—"}</div>`
+						: "";
+				})()}
       </div>
     </div>
 

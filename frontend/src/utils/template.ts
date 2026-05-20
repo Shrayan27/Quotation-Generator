@@ -174,7 +174,7 @@ export function generateLivePreviewHtml(q: any): string {
 			const specs = lines.slice(1).join("\n");
 			const photoImg =
 				item.photo && item.photo.length > 20
-					? `<img src="${item.photo}" style="width:50px;height:50px;object-fit:contain;display:block;margin:2px auto;border-radius:4px;" />`
+					? `<img src="${item.photo}" style="width:90px;height:90px;object-fit:contain;display:block;margin:2px auto;border-radius:4px;" />`
 					: "";
 			const showPrice = !q.isDocComposite;
 

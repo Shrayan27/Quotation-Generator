@@ -26,6 +26,44 @@ export const TrackerPanel: React.FC<TrackerPanelProps> = ({
 	const { notificationDays, setNotificationDays, setToast } =
 		useQuotationStore();
 	const [loading, setLoading] = useState(false);
+	const [now, setNow] = useState(Date.now());
+
+	useEffect(() => {
+		if (!isOpen) return;
+		const timer = setInterval(() => {
+			setNow(Date.now());
+		}, 1000);
+		return () => clearInterval(timer);
+	}, [isOpen]);
+
+	const getRelativeTimeText = (dueDateStr: string, status: string, currentNow: number) => {
+		if (status === "replied") return { text: "Replied ✓", isOverdue: false };
+		const dueTime = new Date(dueDateStr).getTime();
+		const diffMs = dueTime - currentNow;
+		const isOverdue = diffMs < 0;
+		const absMs = Math.abs(diffMs);
+
+		const seconds = Math.floor(absMs / 1000);
+		const minutes = Math.floor(seconds / 60);
+		const hours = Math.floor(minutes / 60);
+		const days = Math.floor(hours / 24);
+
+		let label = "";
+		if (days > 0) {
+			label = `${days}d ${hours % 24}h`;
+		} else if (hours > 0) {
+			label = `${hours}h ${minutes % 60}m`;
+		} else if (minutes > 0) {
+			label = `${minutes}m ${seconds % 60}s`;
+		} else {
+			label = `${seconds}s`;
+		}
+
+		return {
+			text: isOverdue ? `Overdue by ${label}` : `Due in ${label}`,
+			isOverdue
+		};
+	};
 
 	const loadNotifications = async () => {
 		setLoading(true);
@@ -103,8 +141,6 @@ export const TrackerPanel: React.FC<TrackerPanelProps> = ({
 	};
 
 	if (!isOpen) return null;
-
-	const now = Date.now();
 
 	return (
 		<div className="fixed inset-0 z-50 overflow-hidden flex justify-end">
@@ -221,11 +257,7 @@ export const TrackerPanel: React.FC<TrackerPanelProps> = ({
 						</div>
 					) : (
 						notifications.map((n) => {
-							const dueTimestamp = new Date(n.dueDate).getTime();
-							const isOverdue = now > dueTimestamp && n.status === "pending";
-							const diffDays = Math.ceil(
-								Math.abs(dueTimestamp - now) / 86400000,
-							);
+							const { text, isOverdue } = getRelativeTimeText(n.dueDate, n.status, now);
 
 							return (
 								<div
@@ -255,13 +287,7 @@ export const TrackerPanel: React.FC<TrackerPanelProps> = ({
 														? "bg-rose-100 text-rose-700 border border-rose-200 animate-pulse"
 														: "bg-amber-100 text-amber-800 border border-amber-200"
 											}`}>
-											{n.status === "replied" ? (
-												<>Replied ✓</>
-											) : isOverdue ? (
-												<>Overdue by {diffDays}d</>
-											) : (
-												<>Due in {diffDays}d</>
-											)}
+											{text}
 										</span>
 									</div>
 

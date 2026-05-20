@@ -4,7 +4,7 @@
   "description": "Secure API and PDF engine for Kuchhal Brothers Quotation Generator",
   "main": "src/app.ts",
   "scripts": {
-    "dev": "nodemon src/app.ts",
+    "dev": "npx kill-port 5000 && nodemon src/app.ts",
     "build": "tsc",
     "start": "node dist/app.js",
     "prisma:generate": "prisma generate",

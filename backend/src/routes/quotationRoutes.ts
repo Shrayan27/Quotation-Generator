@@ -213,7 +213,7 @@ quotationRouter.post('/', async (req: Request, res: Response) => {
 
         // Register the automated Follow-Up Sequence
         const nextDate = new Date();
-        nextDate.setMinutes(nextDate.getMinutes() + 20); // First follow-up in 20 minutes
+        nextDate.setMinutes(nextDate.getMinutes() + 5); // First follow-up in 5 minutes
 
         await prisma.followUpSequence.create({
           data: {
